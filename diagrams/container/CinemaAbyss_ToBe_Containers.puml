@@ -1,0 +1,63 @@
+@startuml CinemaAbyss_ToBe_Containers
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title CinemaAbyss To-Be — Container Diagram
+
+top to bottom direction
+
+Person(user, "User", "Uses the online cinema platform from different devices")
+
+System_Ext(recommendation_system, "Recommendation System", "External recommendation engine")
+
+System_Boundary(cinemaabyss, "CinemaAbyss") {
+
+    Container(web_app, "Web Application", "Web Client", "Browser-based client application")
+    Container(mobile_app, "Mobile Application", "Mobile Client", "Mobile client application")
+    Container(tv_app, "Smart TV Application", "TV Client", "Smart TV client application")
+
+    Container(api_gateway, "API Gateway", "HTTP API Gateway", "Single entry point for all client requests. Handles routing, authentication, and request aggregation")
+
+    Container(user_service, "User Service", "REST Microservice", "Manages user accounts, authentication, profiles, and favorites")
+    ContainerDb(user_db, "User Database", "PostgreSQL", "Stores user-related data")
+
+    Container(movies_service, "Movies Service", "REST Microservice", "Manages movie metadata, genres, actors, ratings, and catalog")
+    ContainerDb(movies_db, "Movies Database", "PostgreSQL", "Stores movie metadata")
+
+    Container(subscription_service, "Subscription Service", "REST Microservice", "Manages subscription plans, renewals, discounts, and access rules")
+    ContainerDb(subscription_db, "Subscription Database", "PostgreSQL", "Stores subscription-related data")
+
+    Container(payment_service, "Payment Service", "REST Microservice", "Processes payments and payment status changes")
+    ContainerDb(payment_db, "Payment Database", "PostgreSQL", "Stores payment-related data")
+
+    Container(events_service, "Events Service", "REST Microservice", "Publishes and consumes domain events for asynchronous communication")
+    ContainerQueue(kafka, "Kafka", "Event Streaming Platform", "Asynchronous communication between services")
+}
+
+Rel(user, web_app, "Uses")
+Rel(user, mobile_app, "Uses")
+Rel(user, tv_app, "Uses")
+
+Rel(web_app, api_gateway, "Sends requests to", "HTTP/REST")
+Rel(mobile_app, api_gateway, "Sends requests to", "HTTP/REST")
+Rel(tv_app, api_gateway, "Sends requests to", "HTTP/REST")
+
+Rel(api_gateway, user_service, "Routes requests to", "HTTP/REST")
+Rel(api_gateway, movies_service, "Routes requests to", "HTTP/REST")
+Rel(api_gateway, subscription_service, "Routes requests to", "HTTP/REST")
+Rel(api_gateway, payment_service, "Routes requests to", "HTTP/REST")
+Rel(api_gateway, events_service, "Routes event requests to", "HTTP/REST")
+
+Rel(user_service, user_db, "Reads/Writes", "SQL")
+Rel(movies_service, movies_db, "Reads/Writes", "SQL")
+Rel(subscription_service, subscription_db, "Reads/Writes", "SQL")
+Rel(payment_service, payment_db, "Reads/Writes", "SQL")
+
+Rel(user_service, kafka, "Publishes/Consumes events", "Kafka")
+Rel(movies_service, kafka, "Publishes/Consumes events", "Kafka")
+Rel(subscription_service, kafka, "Publishes/Consumes events", "Kafka")
+Rel(payment_service, kafka, "Publishes/Consumes events", "Kafka")
+Rel(events_service, kafka, "Produces/Consumes events", "Kafka")
+
+Rel(api_gateway, recommendation_system, "Requests recommendations from", "HTTP/REST")
+
+@enduml
