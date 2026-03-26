@@ -13,6 +13,35 @@ export class AppService {
     process.env.MOVIES_MIGRATION_PERCENT || '0',
   );
 
+  private toFetchHeaders(headers: Request['headers']): Headers {
+    const normalizedHeaders = new Headers();
+    const blockedHeaders = new Set([
+      'host',
+      'connection',
+      'content-length',
+      'transfer-encoding',
+    ]);
+
+    for (const [key, value] of Object.entries(headers)) {
+      const normalizedKey = key.toLowerCase();
+
+      if (blockedHeaders.has(normalizedKey) || value === undefined) {
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          normalizedHeaders.append(key, item);
+        }
+        continue;
+      }
+
+      normalizedHeaders.set(key, value);
+    }
+
+    return normalizedHeaders;
+  }
+
   async forwardToMonolith(req: Request, res: Response) {
     return this.forward(req, res, this.monolithUrl);
   }
@@ -26,14 +55,15 @@ export class AppService {
 
   private async forward(req: Request, res: Response, baseUrl: string) {
     const url = `${baseUrl}${req.originalUrl}`;
+    const body =
+      req.method !== 'GET' && req.method !== 'HEAD'
+        ? JSON.stringify(req.body)
+        : undefined;
 
     const response = await fetch(url, {
       method: req.method,
-      headers: req.headers as HeadersInit,
-      body:
-        req.method !== 'GET' && req.method !== 'HEAD'
-          ? JSON.stringify(req.body)
-          : undefined,
+      headers: this.toFetchHeaders(req.headers),
+      body,
     });
 
     const contentType = response.headers.get('content-type') || '';
