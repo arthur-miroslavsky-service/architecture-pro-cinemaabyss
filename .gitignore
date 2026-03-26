@@ -154,3 +154,7 @@ go.work
 
 # Postman tests reports
 tests/postman/reports/
+
+# Proxy service
+src/microservices/proxy/node_modules/
+src/microservices/proxy/build/
