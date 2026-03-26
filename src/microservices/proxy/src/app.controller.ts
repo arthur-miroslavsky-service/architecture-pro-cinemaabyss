@@ -11,22 +11,22 @@ export class AppController {
     return res.status(200).json({ status: 'ok' });
   }
 
-  @All('api/users')
+  @All('api/users*')
   async users(@Req() req: Request, @Res() res: Response) {
     return this.appService.forwardToMonolith(req, res);
   }
 
-  @All('api/movies')
+  @All('api/movies*')
   async movies(@Req() req: Request, @Res() res: Response) {
     return this.appService.forwardMovies(req, res);
   }
 
-  @All('api/payments')
+  @All('api/payments*')
   async payments(@Req() req: Request, @Res() res: Response) {
     return this.appService.forwardToMonolith(req, res);
   }
 
-  @All('api/subscriptions')
+  @All('api/subscriptions*')
   async subscriptions(@Req() req: Request, @Res() res: Response) {
     return this.appService.forwardToMonolith(req, res);
   }
