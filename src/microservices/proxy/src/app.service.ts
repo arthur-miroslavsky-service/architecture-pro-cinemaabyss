@@ -14,28 +14,36 @@ export class AppService {
   );
 
   async forwardToMonolith(req: Request, res: Response) {
-    return this.forward(`${this.monolithUrl}${req.originalUrl}`, res);
+    return this.forward(req, res, this.monolithUrl);
   }
 
   async forwardMovies(req: Request, res: Response) {
     const useMoviesService = Math.random() * 100 < this.migrationPercent;
     const baseUrl = useMoviesService ? this.moviesServiceUrl : this.monolithUrl;
 
-    return this.forward(`${baseUrl}${req.originalUrl}`, res);
+    return this.forward(req, res, baseUrl);
   }
 
-  private async forward(url: string, res: Response) {
-    const response = await fetch(url);
+  private async forward(req: Request, res: Response, baseUrl: string) {
+    const url = `${baseUrl}${req.originalUrl}`;
+
+    const response = await fetch(url, {
+      method: req.method,
+      headers: req.headers as HeadersInit,
+      body:
+        req.method !== 'GET' && req.method !== 'HEAD'
+          ? JSON.stringify(req.body)
+          : undefined,
+    });
+
     const contentType = response.headers.get('content-type') || '';
 
     res.status(response.status);
 
     if (contentType.includes('application/json')) {
-      const data = (await response.json()) as unknown;
-      return res.json(data);
+      return res.json(await response.json());
     }
 
-    const text = await response.text();
-    return res.send(text);
+    return res.send(await response.text());
   }
 }
